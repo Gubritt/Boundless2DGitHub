@@ -10,7 +10,7 @@ namespace CrystalCaveBackgroundsPixelArt
         public bool smoothCamera = true;
         public bool lockVerticalAxis = false;
         public bool lockCameraSize = false;
-        public float cameraSize = 5f;
+        public float cameraSize = 2f;
 
         private void Start()
         {
@@ -19,12 +19,12 @@ namespace CrystalCaveBackgroundsPixelArt
 
         private void Update()
         {
-            Camera.main.orthographicSize = lockCameraSize ? 5f : cameraSize;
+            Camera.main.orthographicSize = lockCameraSize ? 2f : cameraSize;
 
             float playerDistanceY = Camera.main.orthographicSize * 0.7f;
             float smoothSpeed = 5.0f;
 
-            Vector3 desiredPosition = new Vector3(player.position.x, lockVerticalAxis ? playerDistanceY : player.position.y + playerDistanceY, -10f);
+            Vector3 desiredPosition = new Vector3(player.position.x, lockVerticalAxis ? playerDistanceY : player.position.y + playerDistanceY, -1f);
             Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
 
             transform.position = smoothCamera ? smoothedPosition : desiredPosition;
