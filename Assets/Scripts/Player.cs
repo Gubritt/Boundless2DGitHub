@@ -25,11 +25,10 @@ namespace CrystalCaveBackgroundsPixelArt
         [SerializeField, Range(0.2f, 1f)]
         private float crouchSpeedMultiplier = 0.4f;
 
-        [SerializeField] private Vector2 crouchColliderSize = new Vector2(0.6f, 0.9f);
-        [SerializeField] private Vector2 crouchColliderOffset = new Vector2(0f, 0f);
-
         private Vector2 originalColliderSize;
         private Vector2 originalColliderOffset;
+
+        private Vector2 crouchColliderSize;
 
         [Header("Scale")]
         [SerializeField]
@@ -46,20 +45,33 @@ namespace CrystalCaveBackgroundsPixelArt
             originalColliderSize = boxCol.size;
             originalColliderOffset = boxCol.offset;
 
-            // Lock scale once — NEVER touch it again
+            // Create crouch size automatically (50% height)
+            crouchColliderSize = new Vector2(
+                originalColliderSize.x,
+                originalColliderSize.y * 0.5f
+            );
+
+            // Lock scale once
             transform.localScale = lockedScale;
         }
 
         private void Update()
         {
-            // --- CROUCH ---
             bool isCrouching = Input.GetKey(crouchKey);
             animator.SetBool("IsCrouching", isCrouching);
 
+            // ----- CROUCH FIX -----
             if (isCrouching)
             {
                 boxCol.size = crouchColliderSize;
-                boxCol.offset = crouchColliderOffset;
+
+                // Adjust offset so feet stay on ground
+                float heightDifference = originalColliderSize.y - crouchColliderSize.y;
+
+                boxCol.offset = new Vector2(
+                    originalColliderOffset.x,
+                    originalColliderOffset.y - heightDifference / 2f
+                );
             }
             else
             {
@@ -67,7 +79,7 @@ namespace CrystalCaveBackgroundsPixelArt
                 boxCol.offset = originalColliderOffset;
             }
 
-            // --- MOVEMENT ---
+            // ----- MOVEMENT -----
             float horizontal = Input.GetAxisRaw("Horizontal");
 
             float currentSpeed = speed;
@@ -76,13 +88,13 @@ namespace CrystalCaveBackgroundsPixelArt
 
             rb.linearVelocity = new Vector2(horizontal * currentSpeed, rb.linearVelocity.y);
 
-            // --- FLIP SPRITE (NO NEGATIVE SCALE) ---
+            // Flip sprite without scaling
             if (horizontal < 0)
                 spriteRenderer.flipX = true;
             else if (horizontal > 0)
                 spriteRenderer.flipX = false;
 
-            // --- JUMP (disabled while crouching) ---
+            // ----- JUMP -----
             if (!isCrouching && Input.GetButtonDown("Jump") && IsGrounded())
             {
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
@@ -94,13 +106,13 @@ namespace CrystalCaveBackgroundsPixelArt
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * 0.5f);
             }
 
-            // --- ATTACK ---
+            // ----- ATTACK -----
             if (Input.GetMouseButtonDown(0))
             {
                 animator.SetTrigger("Attack");
             }
 
-            // --- ANIMATION ---
+            // ----- ANIMATION -----
             animator.SetFloat("Speed", Mathf.Abs(horizontal));
             animator.SetBool("IsGrounded", IsGrounded());
         }
